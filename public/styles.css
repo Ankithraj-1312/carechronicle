@@ -630,8 +630,12 @@ input:focus {
   padding: 8px 14px;
   border-radius: 20px;
   cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  outline: none;
   transition: var(--transition-smooth);
 }
+
 
 .suggestion-badge:hover {
   background-color: rgba(167, 139, 250, 0.06);

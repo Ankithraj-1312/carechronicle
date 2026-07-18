@@ -192,8 +192,9 @@ function populateSuggestions() {
   }
 
   suggestionsBox.innerHTML = suggestions.map(q => 
-    `<button data-question="${q}">${q.split(' ').slice(0, 3).join(' ')}...</button>`
+    `<button class="suggestion-badge" data-question="${q}">${q}</button>`
   ).join('');
+
 
   // Add click listeners to suggestions
   suggestionsBox.querySelectorAll('button').forEach(btn => {
