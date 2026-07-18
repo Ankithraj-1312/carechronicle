@@ -40,6 +40,8 @@ const closeNewPatientModal = byId('close-new-patient-modal');
 const newPatientName = byId('new-patient-name');
 const newPatientStatus = byId('new-patient-status');
 const createPatientBtn = byId('create-patient-btn');
+const deletePatientBtn = byId('delete-patient-btn');
+
 
 
 // Initial setup
@@ -114,7 +116,9 @@ function setupEventListeners() {
   newPatientName.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') registerNewPatient();
   });
+  deletePatientBtn.addEventListener('click', deleteCurrentPatient);
 }
+
 
 
 // Load Patients List from Server
@@ -560,6 +564,33 @@ async function registerNewPatient() {
   }
 }
 
+// Delete Current Patient
+async function deleteCurrentPatient() {
+  const patientNameText = patientName.textContent;
+  const confirmDelete = confirm(`Are you sure you want to delete patient "${patientNameText}" and all of their ingested medical records? This action cannot be undone.`);
+  
+  if (!confirmDelete) return;
+
+  try {
+    const res = await fetch(`/api/patients?patientId=${currentPatientId}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to delete patient');
+    }
+    
+    alert(`Successfully deleted patient profile: ${patientNameText}`);
+    
+    // Reload patient registry list
+    await loadPatients();
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+}
+
 // Boot
 window.onload = init;
+
 

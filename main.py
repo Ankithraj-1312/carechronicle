@@ -1,6 +1,7 @@
 import os
 import re
 import base64
+import shutil
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -151,6 +152,28 @@ def create_patient(payload: NewPatientPayload):
     
     os.makedirs(os.path.join(PATIENTS_DIR, new_id), exist_ok=True)
     return {"id": new_id, "name": name}
+
+@app.delete("/api/patients")
+def delete_patient(patientId: str):
+    pid = patientId.strip()
+    if not pid:
+        return JSONResponse(status_code=400, content={"error": "Missing patientId."})
+        
+    from lib.wiki import load_patient_registry, save_patient_registry
+    registry = load_patient_registry()
+    
+    if pid not in registry:
+        return JSONResponse(status_code=404, content={"error": "Patient not found in registry."})
+        
+    del registry[pid]
+    save_patient_registry(registry)
+    
+    p_dir = os.path.join(PATIENTS_DIR, pid)
+    if os.path.exists(p_dir):
+        shutil.rmtree(p_dir)
+        
+    return {"message": f"Patient {pid} deleted."}
+
 
 
 @app.get("/api/profile")
