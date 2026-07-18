@@ -1043,3 +1043,77 @@ code {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Colorized Sidebar List Items */
+#patient-conditions li {
+  border-left: 3px solid var(--text-safe) !important;
+  background-color: rgba(52, 211, 153, 0.03);
+  color: var(--text-main);
+}
+#patient-conditions li:hover {
+  background-color: rgba(52, 211, 153, 0.08);
+}
+
+#patient-medications li {
+  border-left: 3px solid var(--accent-primary) !important;
+  background-color: rgba(167, 139, 250, 0.03);
+  color: var(--text-main);
+}
+#patient-medications li:hover {
+  background-color: rgba(167, 139, 250, 0.08);
+}
+
+#patient-tests li {
+  border-left: 3px solid var(--accent-secondary) !important;
+  background-color: rgba(34, 211, 238, 0.03);
+  color: var(--text-main);
+}
+#patient-tests li:hover {
+  background-color: rgba(34, 211, 238, 0.08);
+}
+
+/* Colorized Timeline Cards based on record type */
+.timeline-item.prescription .timeline-card {
+  border-left: 3px solid var(--accent-primary) !important;
+  background-color: rgba(167, 139, 250, 0.02);
+}
+.timeline-item.prescription .timeline-card::after {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.4) !important;
+}
+.timeline-item.prescription .timeline-card:hover::after {
+  background-color: var(--accent-primary) !important;
+}
+
+.timeline-item.lab-report .timeline-card {
+  border-left: 3px solid var(--accent-secondary) !important;
+  background-color: rgba(34, 211, 238, 0.02);
+}
+.timeline-item.lab-report .timeline-card::after {
+  border-color: var(--accent-secondary) !important;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.4) !important;
+}
+.timeline-item.lab-report .timeline-card:hover::after {
+  background-color: var(--accent-secondary) !important;
+}
+
+.timeline-item.discharge-summary .timeline-card {
+  border-left: 3px solid var(--text-safe) !important;
+  background-color: rgba(52, 211, 153, 0.02);
+}
+.timeline-item.discharge-summary .timeline-card::after {
+  border-color: var(--text-safe) !important;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.4) !important;
+}
+.timeline-item.discharge-summary .timeline-card:hover::after {
+  background-color: var(--text-safe) !important;
+}
+
+.timeline-date {
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
