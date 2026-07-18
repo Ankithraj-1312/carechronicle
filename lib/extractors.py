@@ -29,8 +29,17 @@ def extract_text(buffer: bytes, filename: str) -> str:
     elif ext == 'docx':
         doc = docx.Document(io.BytesIO(buffer))
         return "\n".join([p.text for p in doc.paragraphs])
+    elif ext in ['png', 'jpg', 'jpeg']:
+        try:
+            from PIL import Image
+            import pytesseract
+            img = Image.open(io.BytesIO(buffer))
+            return pytesseract.image_to_string(img) or ""
+        except Exception as e:
+            raise ValueError(f"OCR failed for image .{ext}: {str(e)}")
     elif ext in ['txt', 'md', 'markdown']:
         return buffer.decode('utf-8', errors='ignore')
     else:
         raise ValueError(f"Unsupported file type: .{ext}")
+
 
