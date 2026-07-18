@@ -1,6 +1,5 @@
 import requests
 import datetime
-from lib.okf_builder import build_okf_markdown
 
 def fetch_fhir_patient(fhir_base: str, patient_id: str) -> dict:
     url = f"{fhir_base.rstrip('/')}/Patient/{patient_id}"
@@ -38,21 +37,40 @@ def convert_fhir_medication_request(res: dict) -> str:
     if "requester" in res:
         doctor = res["requester"].get("display", "Dr. Sarah Jenkins")
         
-    body = f"""# Prescription Details
-- - {med_name} - {dosage_text}
+    doc_id = f"prescription-{date_str}-{res.get('id', 'imported')}"
+    
+    frontmatter = f"""---
+id: "{doc_id}"
+type: "prescription"
+patient_id: "patient-temp"
+date: "{date_str}"
+hospital: "Hospital Outpatient Care"
+doctor: "{doctor}"
+source_file: "FHIR-MedicationRequest-{res.get('id', 'imported')}.json"
+source_page: 1
+links:
+  - patient-temp
+  - timeline-{date_str}
+  - prescription
+---"""
+    
+    body = f"""{frontmatter}
+# Prescription Details
+
+## Extracted factual details
+- Prescription: {med_name}
+- Dosage: {dosage_text}
 - Physician: {doctor}
 - Facility: Hospital Outpatient Care
+
+## Source excerpt
+FHIR MedicationRequest Resource:
+- Medication: {med_name}
+- Status: {res.get('status', 'unknown')}
+- Authored On: {date_str}
+- Prescriber: {doctor}
 """
-    doc_id = f"prescription-{date_str}-{res.get('id', 'imported')}"
-    return build_okf_markdown(
-        filename=f"{doc_id}.txt",
-        content=body,
-        patient_id="patient-temp",
-        doc_type="prescription",
-        doc_date=date_str,
-        hospital="Hospital Outpatient Care",
-        doctor=doctor
-    )
+    return body
 
 def convert_fhir_observation(res: dict) -> str:
     test_name = "Lab Report"
@@ -71,7 +89,6 @@ def convert_fhir_observation(res: dict) -> str:
     elif "valueCodeableConcept" in res:
         val_str = res["valueCodeableConcept"].get("text", "")
     elif "component" in res:
-        # e.g., Blood Pressure panel components
         comp_parts = []
         for comp in res["component"]:
             c_name = comp.get("code", {}).get("text", "") or comp.get("code", {}).get("coding", [{}])[0].get("display", "Test")
@@ -80,18 +97,36 @@ def convert_fhir_observation(res: dict) -> str:
             comp_parts.append(f"{c_name}: {c_val} {c_unit}".strip())
         val_str = " | ".join(comp_parts)
         
-    body = f"""# Lab Investigation Report
-- - {test_name}: {val_str}
+    doc_id = f"lab-report-{date_str}-{res.get('id', 'imported')}"
+    
+    frontmatter = f"""---
+id: "{doc_id}"
+type: "lab-report"
+patient_id: "patient-temp"
+date: "{date_str}"
+hospital: "Clinical Pathology Labs"
+doctor: "Dr. Sunita Rao"
+source_file: "FHIR-Observation-{res.get('id', 'imported')}.json"
+source_page: 1
+links:
+  - patient-temp
+  - timeline-{date_str}
+  - lab-report
+---"""
+
+    body = f"""{frontmatter}
+# Lab Investigation Report
+
+## Extracted factual details
+- {test_name}: {val_str}
 - Physician: Dr. Sunita Rao
 - Facility: Clinical Pathology Labs
+
+## Source excerpt
+FHIR Observation Resource:
+- Observation: {test_name}
+- Value: {val_str}
+- Status: {res.get('status', 'unknown')}
+- Effective Date: {date_str}
 """
-    doc_id = f"lab-report-{date_str}-{res.get('id', 'imported')}"
-    return build_okf_markdown(
-        filename=f"{doc_id}.txt",
-        content=body,
-        patient_id="patient-temp",
-        doc_type="lab-report",
-        doc_date=date_str,
-        hospital="Clinical Pathology Labs",
-        doctor="Dr. Sunita Rao"
-    )
+    return body
