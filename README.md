@@ -109,7 +109,7 @@ Standard clinical Retrieval-Augmented Generation (RAG) platforms make multiple L
 ### 1. Prerequisites
 - Python 3.10 or higher installed.
 - Active Groq API Key (Primary) and/or Google Gemini API Key (Fallback).
-- (Optional) [Ollama](https://ollama.com/) running locally for HIPAA mode.
+- [Ollama](https://ollama.com/) running locally for HIPAA mode.
 - (Optional) [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed on your system PATH for image ingestion.
 
 ### 2. Install Project Dependencies
