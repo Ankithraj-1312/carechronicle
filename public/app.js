@@ -408,29 +408,68 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Helper: Typewriter effect
-async function typeText(text, container) {
-  // Enhanced Markdown-to-HTML parser
-  let formattedText = text
-    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 style="font-size:1.05rem;font-weight:700;margin:0.5em 0 0.25em;color:var(--accent-primary);">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 style="font-size:1.15rem;font-weight:800;margin:0.5em 0 0.25em;">$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code style="background:rgba(0,230,153,0.1);padding:1px 5px;border-radius:3px;font-family:var(--font-mono);font-size:0.85em;">$1</code>')
-    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--border-color);margin:0.75em 0;">')
-    .replace(/^\d+\. (.+)$/gm, '<li style="margin-left:1.25em;list-style:decimal;">$1</li>')
-    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
-  
-  // Word-by-word typing
-  const words = formattedText.split(' ');
-  for (let i = 0; i < words.length; i++) {
-    container.innerHTML += words[i] + ' ';
-    await delay(22); // slightly faster type speed
+// Helper: Convert markdown string to clean HTML
+function markdownToHtml(text) {
+  const lines = text.split('\n');
+  const result = [];
+  let inUl = false;
+  let inOl = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // Close lists if current line is not a list item
+    const isUlItem = /^[-*] (.+)$/.test(line);
+    const isOlItem = /^\d+\. (.+)$/.test(line);
+
+    if (inUl && !isUlItem) { result.push('</ul>'); inUl = false; }
+    if (inOl && !isOlItem) { result.push('</ol>'); inOl = false; }
+
+    // Headers
+    if (/^#### (.+)$/.test(line)) {
+      result.push(`<h4 class="md-h4">${line.replace(/^#### /, '')}</h4>`);
+    } else if (/^### (.+)$/.test(line)) {
+      result.push(`<h3 class="md-h3">${line.replace(/^### /, '')}</h3>`);
+    } else if (/^## (.+)$/.test(line)) {
+      result.push(`<h2 class="md-h2">${line.replace(/^## /, '')}</h2>`);
+    } else if (/^# (.+)$/.test(line)) {
+      result.push(`<h1 class="md-h1">${line.replace(/^# /, '')}</h1>`);
+    // Horizontal rule
+    } else if (/^---$/.test(line.trim())) {
+      result.push('<hr class="md-hr">');
+    // Unordered list
+    } else if (isUlItem) {
+      if (!inUl) { result.push('<ul class="md-ul">'); inUl = true; }
+      result.push(`<li>${line.replace(/^[-*] /, '')}</li>`);
+    // Ordered list
+    } else if (isOlItem) {
+      if (!inOl) { result.push('<ol class="md-ol">'); inOl = true; }
+      result.push(`<li>${line.replace(/^\d+\. /, '')}</li>`);
+    // Blank line
+    } else if (line.trim() === '') {
+      result.push('<div class="md-spacer"></div>');
+    // Normal paragraph line
+    } else {
+      result.push(`<p class="md-p">${line}</p>`);
+    }
   }
+
+  // Close any open lists
+  if (inUl) result.push('</ul>');
+  if (inOl) result.push('</ol>');
+
+  // Join and apply inline formatting
+  return result.join('\n')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '<span class="md-cite">[$1]</span>');
+}
+
+// Helper: Render answer with smooth reveal animation
+async function typeText(text, container) {
+  const html = markdownToHtml(text);
+  container.innerHTML = `<div class="answer-reveal">${html}</div>`;
 }
 
 

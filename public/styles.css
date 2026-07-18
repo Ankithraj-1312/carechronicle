@@ -884,6 +884,106 @@ input:focus {
   to { opacity: 1; }
 }
 
+/* Answer reveal animation */
+@keyframes answerReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.answer-reveal {
+  animation: answerReveal 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Markdown rendered answer styles */
+.answer-content .md-h1 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0.9em 0 0.3em;
+  line-height: 1.3;
+}
+.answer-content .md-h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin: 0.85em 0 0.25em;
+  letter-spacing: 0.01em;
+}
+.answer-content .md-h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-secondary);
+  margin: 0.75em 0 0.2em;
+}
+.answer-content .md-h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0.6em 0 0.15em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.answer-content .md-p {
+  margin: 0.35em 0;
+  line-height: 1.65;
+  color: var(--text-main);
+  font-size: 0.88rem;
+}
+.answer-content .md-ul,
+.answer-content .md-ol {
+  margin: 0.4em 0 0.4em 1.4em;
+  padding: 0;
+  line-height: 1.7;
+}
+.answer-content .md-ul li,
+.answer-content .md-ol li {
+  margin: 0.2em 0;
+  font-size: 0.87rem;
+  color: var(--text-main);
+}
+.answer-content .md-ul li::marker {
+  color: var(--accent-primary);
+}
+.answer-content .md-ol li::marker {
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+.answer-content .md-code {
+  background: rgba(0, 230, 153, 0.1);
+  color: var(--accent-primary);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  border: 1px solid rgba(0, 230, 153, 0.18);
+}
+.answer-content .md-cite {
+  background: rgba(0, 153, 255, 0.1);
+  color: var(--accent-secondary);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  border: 1px solid rgba(0, 153, 255, 0.2);
+  cursor: default;
+}
+.answer-content .md-hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 0.85em 0;
+}
+.answer-content .md-spacer {
+  height: 0.45em;
+}
+.answer-content strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+.answer-content em {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+
 /* Responsive details */
 @media (max-width: 992px) {
   .app-layout {

@@ -80,6 +80,11 @@ def list_records(patient_id: str) -> list:
             with open(filepath, "r", encoding="utf-8") as f:
                 markdown = f.read()
             parsed = parse_frontmatter(markdown)
+            # Guard: skip any record whose patient_id doesn't match the requested one
+            record_patient_id = parsed["meta"].get("patient_id", patient_id)
+            if record_patient_id != patient_id:
+                print(f"[WARN] Skipping cross-patient record: {name} (belongs to {record_patient_id}, not {patient_id})", flush=True)
+                continue
             records.append({
                 "file": name,
                 "meta": parsed["meta"],
