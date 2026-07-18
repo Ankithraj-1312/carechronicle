@@ -1,0 +1,20 @@
+{
+  "patients": [
+    {
+      "id": "patient-001",
+      "name": "Ananya Sharma"
+    },
+    {
+      "id": "patient-002",
+      "name": "Ravi Mehta"
+    },
+    {
+      "id": "patient-003",
+      "name": "Emily Chen"
+    },
+    {
+      "id": "patient-004",
+      "name": "Priya Nair"
+    }
+  ]
+}

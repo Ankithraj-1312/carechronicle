@@ -33,6 +33,15 @@ const modalTitle = byId('modal-title');
 const modalCode = byId('modal-code');
 const closeModal = byId('close-modal');
 
+// New Patient Modal Elements
+const newPatientModal = byId('new-patient-modal');
+const newPatientBtn = byId('new-patient-btn');
+const closeNewPatientModal = byId('close-new-patient-modal');
+const newPatientName = byId('new-patient-name');
+const newPatientStatus = byId('new-patient-status');
+const createPatientBtn = byId('create-patient-btn');
+
+
 // Initial setup
 async function init() {
   await loadPatients();
@@ -88,8 +97,25 @@ function setupEventListeners() {
     if (e.target === recordModal) {
       recordModal.style.display = 'none';
     }
+    if (e.target === newPatientModal) {
+      newPatientModal.style.display = 'none';
+    }
+  });
+
+  // New Patient Listeners
+  newPatientBtn.addEventListener('click', () => {
+    newPatientModal.style.display = 'flex';
+    newPatientName.focus();
+  });
+  closeNewPatientModal.addEventListener('click', () => {
+    newPatientModal.style.display = 'none';
+  });
+  createPatientBtn.addEventListener('click', registerNewPatient);
+  newPatientName.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') registerNewPatient();
   });
 }
+
 
 // Load Patients List from Server
 async function loadPatients() {
@@ -484,5 +510,56 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+// Register New Patient
+async function registerNewPatient() {
+  const name = newPatientName.value.trim();
+  if (!name) {
+    newPatientStatus.textContent = "✖ Please enter a patient name.";
+    newPatientStatus.style.color = "var(--text-danger)";
+    return;
+  }
+
+  newPatientStatus.textContent = "Registering patient...";
+  newPatientStatus.style.color = "var(--text-muted)";
+  createPatientBtn.disabled = true;
+
+  try {
+    const res = await fetch('/api/patients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to register patient');
+    }
+
+    newPatientStatus.textContent = "✓ Registered successfully!";
+    newPatientStatus.style.color = "var(--text-safe)";
+    newPatientName.value = "";
+
+    // Reload patients dropdown list
+    await loadPatients();
+
+    // Select the new patient automatically
+    currentPatientId = data.id;
+    patientSelect.value = data.id;
+    await loadPatientDashboard();
+
+    setTimeout(() => {
+      newPatientModal.style.display = 'none';
+      newPatientStatus.textContent = "";
+      createPatientBtn.disabled = false;
+    }, 800);
+
+  } catch (err) {
+    newPatientStatus.textContent = `✖ Error: ${err.message}`;
+    newPatientStatus.style.color = "var(--text-danger)";
+    createPatientBtn.disabled = false;
+  }
+}
+
 // Boot
 window.onload = init;
+

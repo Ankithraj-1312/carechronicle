@@ -706,6 +706,29 @@ input:focus {
   border-color: var(--text-muted);
 }
 
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+  color: var(--text-dark) !important;
+  border: 0 !important;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 0 15px rgba(0, 230, 153, 0.3) !important;
+}
+
+.btn-accent {
+  background-color: rgba(0, 230, 153, 0.1) !important;
+  border-color: rgba(0, 230, 153, 0.25) !important;
+  color: var(--accent-primary) !important;
+}
+
+.btn-accent:hover {
+  background-color: rgba(0, 230, 153, 0.18) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+
 .timeline-container {
   display: flex;
   flex-direction: column;

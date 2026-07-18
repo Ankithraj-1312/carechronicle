@@ -1,16 +1,56 @@
+import json
+import os
 import re
 
-PATIENT_NAMES = {
-    'patient-001': 'Ananya Sharma',
-    'patient-002': 'Ravi Mehta',
-    'patient-003': 'Emily Chen',
-    'patient-004': 'Priya Nair'
-}
+REGISTRY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "patients.json")
+
+def load_patient_registry() -> dict:
+    if not os.path.exists(REGISTRY_PATH):
+        return {
+            'patient-001': 'Ananya Sharma',
+            'patient-002': 'Ravi Mehta',
+            'patient-003': 'Emily Chen',
+            'patient-004': 'Priya Nair'
+        }
+    try:
+        with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {p["id"]: p["name"] for p in data.get("patients", [])}
+    except Exception as e:
+        print(f"Error loading patient registry: {e}")
+        return {}
+
+def save_patient_registry(patients_dict: dict):
+    os.makedirs(os.path.dirname(REGISTRY_PATH), exist_ok=True)
+    patients_list = [{"id": pid, "name": name} for pid, name in patients_dict.items()]
+    try:
+        with open(REGISTRY_PATH, "w", encoding="utf-8") as f:
+            json.dump({"patients": patients_list}, f, indent=2)
+    except Exception as e:
+        print(f"Error saving patient registry: {e}")
+
+def get_next_patient_id() -> str:
+    registry = load_patient_registry()
+    max_num = 0
+    for pid in registry.keys():
+        match = re.match(r'patient-(\d+)', pid)
+        if match:
+            num = int(match.group(1))
+            if num > max_num:
+                max_num = num
+    return f"patient-{str(max_num + 1).zfill(3)}"
 
 def get_patient_name(patient_id: str) -> str:
-    if patient_id in PATIENT_NAMES:
-        return PATIENT_NAMES[patient_id]
+    registry = load_patient_registry()
+    if patient_id in registry:
+        return registry[patient_id]
     return " ".join([p.capitalize() for p in patient_id.split('-')])
+
+# Dynamic attribute lookup for backward compatibility
+def __getattr__(name):
+    if name == 'PATIENT_NAMES':
+        return load_patient_registry()
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 def build_patient_profile(records: list, patient_id: str) -> dict:
     patient_name = get_patient_name(patient_id)

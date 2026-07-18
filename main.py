@@ -34,6 +34,10 @@ class QueryPayload(BaseModel):
     query: str
     patientId: str = 'patient-001'
 
+class NewPatientPayload(BaseModel):
+    name: str
+
+
 def seed_demo_data():
     os.makedirs(PATIENTS_DIR, exist_ok=True)
     
@@ -124,12 +128,30 @@ def rank_records_smarter(query: str, keywords: list, types: list, records: list)
 # API Endpoints
 @app.get("/api/patients")
 def get_patients():
-    for p_id in PATIENT_NAMES.keys():
+    from lib.wiki import load_patient_registry
+    registry = load_patient_registry()
+    for p_id in registry.keys():
         os.makedirs(os.path.join(PATIENTS_DIR, p_id), exist_ok=True)
         
-    dirs = [name for name in os.listdir(PATIENTS_DIR) if os.path.isdir(os.path.join(PATIENTS_DIR, name))]
-    patients = [{"id": d, "name": get_patient_name(d)} for d in dirs]
+    patients = [{"id": pid, "name": name} for pid, name in registry.items()]
     return {"patients": patients}
+
+@app.post("/api/patients")
+def create_patient(payload: NewPatientPayload):
+    name = payload.name.strip()
+    if not name:
+        return JSONResponse(status_code=400, content={"error": "Patient name cannot be empty."})
+        
+    from lib.wiki import load_patient_registry, save_patient_registry, get_next_patient_id
+    registry = load_patient_registry()
+    new_id = get_next_patient_id()
+    
+    registry[new_id] = name
+    save_patient_registry(registry)
+    
+    os.makedirs(os.path.join(PATIENTS_DIR, new_id), exist_ok=True)
+    return {"id": new_id, "name": name}
+
 
 @app.get("/api/profile")
 def get_profile(patientId: str = 'patient-001'):

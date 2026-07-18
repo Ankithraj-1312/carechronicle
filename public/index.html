@@ -27,12 +27,16 @@
 
         <div class="patient-selector-wrapper">
           <label for="patient-select">SELECT PATIENT</label>
-          <div class="select-container">
-            <select id="patient-select">
-              <!-- Dynamically Populated -->
-            </select>
+          <div class="select-row" style="display: flex; gap: 8px; align-items: center;">
+            <div class="select-container" style="flex: 1;">
+              <select id="patient-select">
+                <!-- Dynamically Populated -->
+              </select>
+            </div>
+            <button id="new-patient-btn" class="btn btn-accent" style="padding: 0; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; border-radius: 8px; cursor: pointer;" title="Register New Patient">+</button>
           </div>
         </div>
+
 
         <!-- Patient Profile Card (The LLM Wiki Indexer output) -->
         <div class="profile-card">
@@ -217,6 +221,27 @@
         </div>
       </div>
     </div>
+
+    <!-- New Patient Modal -->
+    <div class="modal" id="new-patient-modal" style="display: none;">
+      <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">
+          <h3>Register New Patient</h3>
+          <button class="close-btn" id="close-new-patient-modal">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+          <div style="margin-bottom: 16px;">
+            <label for="new-patient-name" style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">Full Patient Name</label>
+            <input id="new-patient-name" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-family: var(--font-sans); font-size: 0.9rem; transition: var(--transition-smooth);" placeholder="e.g. Arjun Verma" />
+          </div>
+          <p id="new-patient-status" style="font-size: 0.8rem; min-height: 1.2em; margin-bottom: 16px; transition: var(--transition-smooth);"></p>
+          <button id="create-patient-btn" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600;">
+            <span>Create Patient Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
 
     <script src="/app.js"></script>
   </body>
