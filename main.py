@@ -38,6 +38,12 @@ class QueryPayload(BaseModel):
 class NewPatientPayload(BaseModel):
     name: str
 
+class FhirImportPayload(BaseModel):
+    fhirBase: str
+    fhirPatientId: str
+    patientId: str
+
+
 
 def seed_demo_data():
     os.makedirs(PATIENTS_DIR, exist_ok=True)
@@ -173,6 +179,69 @@ def delete_patient(patientId: str):
         shutil.rmtree(p_dir)
         
     return {"message": f"Patient {pid} deleted."}
+
+@app.post("/api/fhir-import")
+def fhir_import(payload: FhirImportPayload):
+    fhir_base = payload.fhirBase.strip()
+    fhir_pid = payload.fhirPatientId.strip()
+    patient_id = payload.patientId.strip()
+    
+    if not fhir_base or not fhir_pid or not patient_id:
+        return JSONResponse(status_code=400, content={"error": "Missing fhirBase, fhirPatientId, or patientId."})
+        
+    try:
+        import datetime
+        from lib.fhir_client import fetch_fhir_resources, convert_fhir_medication_request, convert_fhir_observation
+        
+        imported_count = 0
+        p_dir = os.path.join(PATIENTS_DIR, patient_id)
+        os.makedirs(p_dir, exist_ok=True)
+        
+        # 1. MedicationRequests
+        med_requests = []
+        try:
+            med_requests = fetch_fhir_resources(fhir_base, fhir_pid, "MedicationRequest")
+        except Exception as e:
+            print(f"[WARN] Failed to fetch MedicationRequests: {e}")
+            
+        for mr in med_requests:
+            okf_md = convert_fhir_medication_request(mr)
+            okf_md = okf_md.replace("patient-temp", patient_id)
+            
+            date_str = mr.get("authoredOn", "") or datetime.date.today().isoformat()
+            if len(date_str) > 10:
+                date_str = date_str[:10]
+            doc_id = f"prescription-{date_str}-{mr.get('id', 'imported')}"
+            
+            with open(os.path.join(p_dir, f"{doc_id}.md"), "w", encoding="utf-8") as f:
+                f.write(okf_md)
+            imported_count += 1
+            
+        # 2. Observations
+        observations = []
+        try:
+            observations = fetch_fhir_resources(fhir_base, fhir_pid, "Observation")
+        except Exception as e:
+            print(f"[WARN] Failed to fetch Observations: {e}")
+            
+        for obs in observations:
+            okf_md = convert_fhir_observation(obs)
+            okf_md = okf_md.replace("patient-temp", patient_id)
+            
+            date_str = obs.get("effectiveDateTime", "") or datetime.date.today().isoformat()
+            if len(date_str) > 10:
+                date_str = date_str[:10]
+            doc_id = f"lab-report-{date_str}-{obs.get('id', 'imported')}"
+            
+            with open(os.path.join(p_dir, f"{doc_id}.md"), "w", encoding="utf-8") as f:
+                f.write(okf_md)
+            imported_count += 1
+            
+        return {"message": f"Successfully imported {imported_count} FHIR resources.", "count": imported_count}
+        
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"FHIR Import failed: {str(e)}"})
+
 
 
 

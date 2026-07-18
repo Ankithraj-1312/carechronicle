@@ -138,7 +138,16 @@
             </div>
 
             <p id="convert-status" class="status-msg" aria-live="polite"></p>
+
+            <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+              <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Or Connect EHR Systems</p>
+              <button id="fhir-import-btn" class="btn" style="width: 100%; justify-content: center; font-weight: 600; gap: 8px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-secondary);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <span>Import from FHIR EHR</span>
+              </button>
+            </div>
           </section>
+
 
           <!-- Q&A Panel -->
           <section class="card panel">
@@ -245,6 +254,31 @@
         </div>
       </div>
     </div>
+
+    <!-- FHIR Import Modal -->
+    <div class="modal" id="fhir-import-modal" style="display: none;">
+      <div class="modal-content" style="max-width: 460px;">
+        <div class="modal-header">
+          <h3>Import Patient EHR Records</h3>
+          <button class="close-btn" id="close-fhir-modal">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+          <div style="margin-bottom: 16px;">
+            <label for="fhir-base-url" style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">FHIR Server Base URL</label>
+            <input id="fhir-base-url" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-family: var(--font-sans); font-size: 0.9rem; transition: var(--transition-smooth);" value="https://hapi.fhir.org/baseR4" placeholder="e.g. https://hapi.fhir.org/baseR4" />
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label for="fhir-patient-id" style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">FHIR Patient ID</label>
+            <input id="fhir-patient-id" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-family: var(--font-sans); font-size: 0.9rem; transition: var(--transition-smooth);" placeholder="e.g. 1000234" />
+          </div>
+          <p id="fhir-status" style="font-size: 0.8rem; min-height: 1.2em; margin-bottom: 16px; transition: var(--transition-smooth);"></p>
+          <button id="import-fhir-submit-btn" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600;">
+            <span>Start FHIR Sync</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
 
 
     <script src="/app.js"></script>

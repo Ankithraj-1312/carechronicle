@@ -74,6 +74,28 @@ def fallback_answer(query: str, records: list) -> dict:
         "safety": "This is a source-based record summary, not medical advice. Please consult a qualified clinician for interpretation, diagnosis, or treatment decisions."
     }
 
+def call_ollama_api(prompt: str, response_format_json: bool = False) -> str:
+    host = os.environ.get("OLLAMA_HOST", "")
+    if not host:
+        raise ValueError("OLLAMA_HOST is not set.")
+    model = os.environ.get("OLLAMA_MODEL", "llama3")
+    
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "stream": False
+    }
+    if response_format_json:
+        payload["format"] = "json"
+        
+    try:
+        response = requests.post(f"{host}/api/generate", json=payload, timeout=60)
+        if response.status_code != 200:
+            raise RuntimeError(f"Ollama API error: {response.status_code} - {response.text}")
+        return response.json().get("response", "")
+    except Exception as e:
+        raise RuntimeError(f"Failed to communicate with Ollama: {str(e)}")
+
 def call_groq_api(messages: list, response_format_json: bool = False) -> str:
     api_key = os.environ.get("Groq_API_KEY", "")
     if not api_key:
@@ -226,6 +248,14 @@ Respond ONLY in this JSON format:
   "safety": "A short patient-specific clinical safety note (1-2 sentences, mention their doctor's name if known)"
 }}"""
 
+    ollama_host = os.environ.get("OLLAMA_HOST", "")
+    if ollama_host:
+        try:
+            res = call_ollama_api(prompt, response_format_json=True)
+            return parse_json_from_text(res)
+        except Exception as e:
+            print("Answer generator Ollama error:", str(e), file=sys.stderr)
+
     if groq_key:
         try:
             res = call_groq_api([{"role": "user", "content": prompt}], response_format_json=True)
@@ -276,6 +306,14 @@ Respond ONLY in this JSON format:
   "answer": "Your detailed, structured markdown answer here...",
   "safety": "A specific 1-2 sentence safety note relevant to this topic"
 }}"""
+    ollama_host = os.environ.get("OLLAMA_HOST", "")
+    if ollama_host:
+        try:
+            res = call_ollama_api(prompt, response_format_json=True)
+            return parse_json_from_text(res)
+        except Exception as e:
+            print("General answer Ollama error:", str(e), file=sys.stderr)
+
     if groq_key:
         try:
             res = call_groq_api([{"role": "user", "content": prompt}], response_format_json=True)

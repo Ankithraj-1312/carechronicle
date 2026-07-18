@@ -42,6 +42,16 @@ const newPatientStatus = byId('new-patient-status');
 const createPatientBtn = byId('create-patient-btn');
 const deletePatientBtn = byId('delete-patient-btn');
 
+// FHIR Import Modal Elements
+const fhirImportModal = byId('fhir-import-modal');
+const fhirImportBtn = byId('fhir-import-btn');
+const closeFhirModal = byId('close-fhir-modal');
+const fhirBaseUrl = byId('fhir-base-url');
+const fhirPatientIdInput = byId('fhir-patient-id');
+const fhirStatus = byId('fhir-status');
+const importFhirSubmitBtn = byId('import-fhir-submit-btn');
+
+
 
 
 // Initial setup
@@ -102,6 +112,9 @@ function setupEventListeners() {
     if (e.target === newPatientModal) {
       newPatientModal.style.display = 'none';
     }
+    if (e.target === fhirImportModal) {
+      fhirImportModal.style.display = 'none';
+    }
   });
 
   // New Patient Listeners
@@ -117,7 +130,21 @@ function setupEventListeners() {
     if (e.key === 'Enter') registerNewPatient();
   });
   deletePatientBtn.addEventListener('click', deleteCurrentPatient);
+
+  // FHIR Import Listeners
+  fhirImportBtn.addEventListener('click', () => {
+    fhirImportModal.style.display = 'flex';
+    fhirPatientIdInput.focus();
+  });
+  closeFhirModal.addEventListener('click', () => {
+    fhirImportModal.style.display = 'none';
+  });
+  importFhirSubmitBtn.addEventListener('click', importFhirRecords);
+  fhirPatientIdInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') importFhirRecords();
+  });
 }
+
 
 
 
@@ -590,7 +617,59 @@ async function deleteCurrentPatient() {
   }
 }
 
+// Import Patient EHR Records from FHIR
+async function importFhirRecords() {
+  const fhirBase = fhirBaseUrl.value.trim();
+  const fhirPatientId = fhirPatientIdInput.value.trim();
+  
+  if (!fhirBase || !fhirPatientId) {
+    fhirStatus.textContent = "✖ Please fill out all fields.";
+    fhirStatus.style.color = "var(--text-danger)";
+    return;
+  }
+  
+  fhirStatus.textContent = "Connecting and importing EHR resources...";
+  fhirStatus.style.color = "var(--text-muted)";
+  importFhirSubmitBtn.disabled = true;
+  
+  try {
+    const res = await fetch('/api/fhir-import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fhirBase,
+        fhirPatientId,
+        patientId: currentPatientId
+      })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to import FHIR records');
+    }
+    
+    fhirStatus.textContent = `✓ Successfully imported ${data.count} records!`;
+    fhirStatus.style.color = "var(--text-safe)";
+    fhirPatientIdInput.value = "";
+    
+    // Refresh dashboard to display the newly imported records
+    await loadPatientDashboard(true);
+    
+    setTimeout(() => {
+      fhirImportModal.style.display = 'none';
+      fhirStatus.textContent = "";
+      importFhirSubmitBtn.disabled = false;
+    }, 1200);
+    
+  } catch (err) {
+    fhirStatus.textContent = `✖ Error: ${err.message}`;
+    fhirStatus.style.color = "var(--text-danger)";
+    importFhirSubmitBtn.disabled = false;
+  }
+}
+
 // Boot
 window.onload = init;
+
 
 

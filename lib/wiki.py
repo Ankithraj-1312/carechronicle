@@ -73,55 +73,91 @@ def build_patient_profile(records: list, patient_id: str) -> dict:
         if meta.get("doctor"):
             doctors.add(meta.get("doctor"))
 
-        if doc_type == 'discharge-summary':
-            match = re.search(r'(?:diagnosis|diagnosed with|admitted for|reason for admission)[:\s]+([^\n.]+)', body, re.IGNORECASE)
-            if match:
-                conditions.add(match.group(1).strip())
-
-        lines = body.splitlines()
-        for line in lines:
-            clean_line = line.strip()
-            if not clean_line.startswith("- "):
-                continue
-            fact_text = clean_line[2:]
-
-            if fact_text.startswith("Physician:") or fact_text.startswith("Facility:"):
-                continue
-
-            is_med = any(term in fact_text.lower() for term in [
-                'prescription', 'rx', 'tablet', 'capsule', 'mg', 'mcg', 'dose',
-                'paracetamol', 'amoxicillin', 'metformin', 'insulin', 'atorvastatin',
-                'aspirin', 'cetirizine', 'pantoprazole', 'ibuprofen', 'losartan',
-                'amlodipine', 'metoprolol', 'lisinopril', 'gabapentin', 'omeprazole',
-                'acetaminophen', 'albuterol', 'synthroid', 'clopidogrel', 'warfarin',
-                'levothyroxine', 'ramipril', 'hydrochlorothiazide', 'furosemide'
-            ])
-            if is_med and doc_type == 'prescription':
-                digit_split = re.split(r'\d', fact_text)
-                med_name = digit_split[0].strip().lower() if digit_split else fact_text.lower()
-                if len(med_name) > 2:
-                    medications[med_name] = {
-                        "name": med_name.title(),
+        from lib.ner import extract_clinical_entities
+        entities = extract_clinical_entities(body)
+        
+        has_entities = bool(entities.get("medications") or entities.get("lab_results") or entities.get("conditions"))
+        
+        if has_entities:
+            # LLM NER Path
+            for med in entities.get("medications", []):
+                name = med.get("name", "").strip()
+                if len(name) > 2:
+                    medications[name.lower()] = {
+                        "name": name.title(),
                         "date": date,
-                        "detail": fact_text
+                        "detail": f"{med.get('name')} {med.get('dose', '')} {med.get('frequency', '')}".strip()
                     }
-
-            is_lab = any(term in fact_text.lower() for term in [
-                'hemoglobin', 'haemoglobin', 'glucose', 'cholesterol', 'platelet',
-                'creatinine', 'thyroid', 'vitamin d', 'hba1c', 'blood pressure',
-                'wbc', 'rbc', 'ldl', 'hdl'
-            ])
-            if is_lab and doc_type == 'lab-report':
-                parts = re.split(r'[:–-]', fact_text, maxsplit=1)
-                test_name = parts[0].strip().lower()
-                test_val = parts[1].strip() if len(parts) > 1 else fact_text
-                if len(test_name) > 2:
-                    tests[test_name] = {
-                        "name": test_name.title(),
+            for lab in entities.get("lab_results", []):
+                name = lab.get("test_name", "").strip()
+                if len(name) > 2:
+                    val = lab.get("value", "")
+                    unit = lab.get("unit", "")
+                    flag = lab.get("flag", "")
+                    detail = f"{name}: {val} {unit}".strip()
+                    if flag:
+                        detail += f" [{flag}]"
+                    tests[name.lower()] = {
+                        "name": name.title(),
                         "date": date,
-                        "value": test_val,
-                        "detail": fact_text
+                        "value": f"{val} {unit}".strip(),
+                        "detail": detail
                     }
+            for cond in entities.get("conditions", []):
+                if len(cond.strip()) > 2:
+                    conditions.add(cond.strip())
+        else:
+            # Regex Fallback Path
+            if doc_type == 'discharge-summary':
+                match = re.search(r'(?:diagnosis|diagnosed with|admitted for|reason for admission)[:\s]+([^\n.]+)', body, re.IGNORECASE)
+                if match:
+                    conditions.add(match.group(1).strip())
+
+            lines = body.splitlines()
+            for line in lines:
+                clean_line = line.strip()
+                if not clean_line.startswith("- "):
+                    continue
+                fact_text = clean_line[2:]
+
+                if fact_text.startswith("Physician:") or fact_text.startswith("Facility:"):
+                    continue
+
+                is_med = any(term in fact_text.lower() for term in [
+                    'prescription', 'rx', 'tablet', 'capsule', 'mg', 'mcg', 'dose',
+                    'paracetamol', 'amoxicillin', 'metformin', 'insulin', 'atorvastatin',
+                    'aspirin', 'cetirizine', 'pantoprazole', 'ibuprofen', 'losartan',
+                    'amlodipine', 'metoprolol', 'lisinopril', 'gabapentin', 'omeprazole',
+                    'acetaminophen', 'albuterol', 'synthroid', 'clopidogrel', 'warfarin',
+                    'levothyroxine', 'ramipril', 'hydrochlorothiazide', 'furosemide'
+                ])
+                if is_med and doc_type == 'prescription':
+                    digit_split = re.split(r'\d', fact_text)
+                    med_name = digit_split[0].strip().lower() if digit_split else fact_text.lower()
+                    if len(med_name) > 2:
+                        medications[med_name] = {
+                            "name": med_name.title(),
+                            "date": date,
+                            "detail": fact_text
+                        }
+
+                is_lab = any(term in fact_text.lower() for term in [
+                    'hemoglobin', 'haemoglobin', 'glucose', 'cholesterol', 'platelet',
+                    'creatinine', 'thyroid', 'vitamin d', 'hba1c', 'blood pressure',
+                    'wbc', 'rbc', 'ldl', 'hdl'
+                ])
+                if is_lab and doc_type == 'lab-report':
+                    parts = re.split(r'[:–-]', fact_text, maxsplit=1)
+                    test_name = parts[0].strip().lower()
+                    test_val = parts[1].strip() if len(parts) > 1 else fact_text
+                    if len(test_name) > 2:
+                        tests[test_name] = {
+                            "name": test_name.title(),
+                            "date": date,
+                            "value": test_val,
+                            "detail": fact_text
+                        }
+
 
     active_meds = sorted(medications.values(), key=lambda x: x["date"], reverse=True)
     recent_tests = sorted(tests.values(), key=lambda x: x["date"], reverse=True)
