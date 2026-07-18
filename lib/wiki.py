@@ -3,7 +3,8 @@ import re
 PATIENT_NAMES = {
     'patient-001': 'Ananya Sharma',
     'patient-002': 'Ravi Mehta',
-    'patient-003': 'Emily Chen'
+    'patient-003': 'Emily Chen',
+    'patient-004': 'Priya Nair'
 }
 
 def get_patient_name(patient_id: str) -> str:
