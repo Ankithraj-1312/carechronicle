@@ -9,8 +9,7 @@ def load_patient_registry() -> dict:
         return {
             'patient-001': 'Ananya Sharma',
             'patient-002': 'Ravi Mehta',
-            'patient-003': 'Emily Chen',
-            'patient-004': 'Priya Nair'
+            'patient-003': 'Emily Chen'
         }
     try:
         with open(REGISTRY_PATH, "r", encoding="utf-8") as f:

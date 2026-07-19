@@ -1,13 +1,13 @@
 ---
 id: prescription-2026-06-22-prescription-demo
 type: prescription
-patient_id: patient-001
+patient_id: patient-003
 date: 2026-06-22
 doctor: "Dr. Sarah"
 source_file: "prescription_demo.png"
 source_page: 1
 links:
-  - patient-001
+  - patient-003
   - timeline-2026-06-22
   - dr-sarah
   - 1-atorvastatin-40-mg

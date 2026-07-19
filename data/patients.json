@@ -11,14 +11,6 @@
     {
       "id": "patient-003",
       "name": "Emily Chen"
-    },
-    {
-      "id": "patient-004",
-      "name": "Priya Nair"
-    },
-    {
-      "id": "patient-005",
-      "name": "john fhir demo"
     }
   ]
 }
