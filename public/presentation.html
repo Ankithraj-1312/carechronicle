@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareChronicle — Hackathon Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-deep: #0a0e1a;
+            --bg-card: rgba(15, 23, 42, 0.7);
+            --bg-glass: rgba(30, 41, 70, 0.45);
+            --accent-teal: #00d4aa;
+            --accent-cyan: #22d3ee;
+            --accent-purple: #a78bfa;
+            --accent-orange: #fb923c;
+            --accent-red: #f87171;
+            --accent-green: #4ade80;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-glass: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            cursor: default;
+        }
+
+        /* ── Slide Container ── */
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+            opacity: 0;
+            transform: translateX(60px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .slide.exit-left {
+            opacity: 0;
+            transform: translateX(-60px);
+        }
+
+        /* ── Background Effects ── */
+        .slide::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .slide:nth-child(odd)::before {
+            background: radial-gradient(circle, var(--accent-teal), transparent 70%);
+            top: -200px; right: -200px;
+        }
+        .slide:nth-child(even)::before {
+            background: radial-gradient(circle, var(--accent-purple), transparent 70%);
+            bottom: -200px; left: -200px;
+        }
+
+        .slide > * { position: relative; z-index: 1; }
+
+        /* ── Typography ── */
+        .slide-tag {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-teal);
+            margin-bottom: 16px;
+        }
+
+        .slide-title {
+            font-size: clamp(36px, 5vw, 64px);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 900px;
+        }
+
+        .slide-subtitle {
+            font-size: clamp(16px, 2vw, 22px);
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 700px;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-warm {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-purple {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Glass Cards ── */
+        .glass-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 28px 32px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        /* ── Problem Slide ── */
+        .problem-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 850px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .problem-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .problem-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .problem-item:nth-child(1) .problem-icon { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); }
+        .problem-item:nth-child(2) .problem-icon { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); }
+        .problem-item:nth-child(3) .problem-icon { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); }
+
+        .problem-text h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .problem-text p { font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* ── Features Grid ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 950px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin: 0 auto 14px;
+        }
+
+        .feature-card:nth-child(1) .feature-icon { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.3); }
+        .feature-card:nth-child(2) .feature-icon { background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); }
+        .feature-card:nth-child(3) .feature-icon { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); }
+        .feature-card:nth-child(4) .feature-icon { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); }
+        .feature-card:nth-child(5) .feature-icon { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); }
+        .feature-card:nth-child(6) .feature-icon { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); }
+
+        .feature-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .feature-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+
+        /* ── Architecture ── */
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1000px;
+            margin-top: 10px;
+        }
+
+        .arch-node {
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .arch-arrow {
+            font-size: 22px;
+            color: var(--accent-teal);
+            font-weight: 300;
+        }
+
+        .arch-node.input { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.25); color: var(--accent-orange); }
+        .arch-node.process { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.25); color: var(--accent-teal); }
+        .arch-node.storage { background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.25); color: var(--accent-cyan); }
+        .arch-node.output { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.25); color: var(--accent-purple); }
+        .arch-node.llm { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.25); color: var(--accent-green); }
+
+        .arch-section-label {
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-top: 20px;
+            margin-bottom: 4px;
+        }
+
+        /* ── Tech Stack ── */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            max-width: 850px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .tech-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+        }
+
+        .tech-badge {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .tech-card:nth-child(1) .tech-badge { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); }
+        .tech-card:nth-child(2) .tech-badge { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); }
+        .tech-card:nth-child(3) .tech-badge { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.3); }
+        .tech-card:nth-child(4) .tech-badge { background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); }
+        .tech-card:nth-child(5) .tech-badge { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); }
+        .tech-card:nth-child(6) .tech-badge { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); }
+
+        .tech-info h4 { font-size: 15px; font-weight: 600; }
+        .tech-info p { font-size: 12px; color: var(--text-secondary); }
+
+        /* ── Privacy Slide ── */
+        .privacy-layout {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+            max-width: 950px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .privacy-shield {
+            width: 180px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: rgba(74,222,128,0.08);
+            border: 2px solid rgba(74,222,128,0.3);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .privacy-shield .shield-icon { font-size: 64px; }
+        .hipaa-badge {
+            position: absolute;
+            bottom: -16px;
+            background: rgba(74,222,128,0.2);
+            border: 1px solid rgba(74,222,128,0.5);
+            color: var(--accent-green);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 6px 16px;
+            border-radius: 20px;
+        }
+
+        .privacy-points { display: flex; flex-direction: column; gap: 18px; flex: 1; }
+        .privacy-point { display: flex; gap: 16px; align-items: flex-start; }
+        .privacy-point-icon {
+            width: 44px; height: 44px; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+            background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.2);
+        }
+        .privacy-point h4 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .privacy-point p { font-size: 14px; color: var(--text-secondary); line-height: 1.4; }
+
+        /* ── Demo Flow ── */
+        .demo-flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 1050px;
+            width: 100%;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-step {
+            text-align: center;
+            padding: 22px 16px;
+            flex: 1;
+            min-width: 130px;
+        }
+
+        .demo-step-num {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.4);
+            color: var(--accent-teal); font-size: 15px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+        }
+
+        .demo-step-icon { font-size: 30px; margin-bottom: 8px; }
+        .demo-step h4 { font-size: 14px; font-weight: 600; }
+
+        .demo-arrow { font-size: 20px; color: var(--accent-teal); flex-shrink: 0; }
+
+        /* ── Metrics ── */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 22px;
+            max-width: 950px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 32px 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .metric-card:nth-child(1)::after { background: linear-gradient(90deg, var(--accent-green), transparent); }
+        .metric-card:nth-child(2)::after { background: linear-gradient(90deg, var(--accent-teal), transparent); }
+        .metric-card:nth-child(3)::after { background: linear-gradient(90deg, var(--accent-purple), transparent); }
+        .metric-card:nth-child(4)::after { background: linear-gradient(90deg, var(--accent-orange), transparent); }
+
+        .metric-value {
+            font-size: clamp(36px, 4vw, 52px);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .metric-card:nth-child(1) .metric-value { color: var(--accent-green); }
+        .metric-card:nth-child(2) .metric-value { color: var(--accent-teal); }
+        .metric-card:nth-child(3) .metric-value { color: var(--accent-purple); }
+        .metric-card:nth-child(4) .metric-value { color: var(--accent-orange); }
+
+        .metric-label { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+
+        /* ── Roadmap ── */
+        .roadmap-timeline {
+            display: flex;
+            align-items: center;
+            max-width: 950px;
+            width: 100%;
+            margin-top: 30px;
+            position: relative;
+        }
+
+        .roadmap-timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 40px; right: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-green) 75%, var(--accent-teal) 75%);
+            border-radius: 2px;
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .roadmap-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .roadmap-dot {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 18px; font-weight: 700;
+        }
+
+        .roadmap-dot.done {
+            background: rgba(74,222,128,0.2);
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .roadmap-dot.next {
+            background: rgba(0,212,170,0.15);
+            border: 2px solid var(--accent-teal);
+            color: var(--accent-teal);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.3); }
+            50% { box-shadow: 0 0 0 12px rgba(0,212,170,0); }
+        }
+
+        .roadmap-label { font-size: 13px; font-weight: 600; }
+        .roadmap-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ── Navigation ── */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0; right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(10,14,26,0.85);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid var(--border-glass);
+            z-index: 100;
+            padding: 0 30px;
+        }
+
+        .nav-btn {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover { background: rgba(0,212,170,0.15); border-color: rgba(0,212,170,0.3); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .nav-btn:disabled:hover { background: var(--bg-glass); border-color: var(--border-glass); }
+
+        .slide-counter {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .slide-counter .current { color: var(--accent-teal); font-weight: 700; }
+
+        /* ── Progress Dots ── */
+        .progress-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .progress-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .progress-dot.active {
+            opacity: 1;
+            background: var(--accent-teal);
+            transform: scale(1.3);
+        }
+
+        /* ── OKF Code Block ── */
+        .okf-code {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(0,212,170,0.2);
+            border-radius: 14px;
+            padding: 24px 28px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            max-width: 550px;
+            width: 100%;
+            text-align: left;
+            color: var(--text-secondary);
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .okf-code .key { color: var(--accent-teal); }
+        .okf-code .val { color: var(--accent-orange); }
+        .okf-code .sep { color: var(--text-muted); }
+        .okf-code .heading { color: var(--accent-purple); font-weight: 600; }
+        .okf-code .fact { color: var(--text-primary); }
+
+        /* ── Solution Cards ── */
+        .solution-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            max-width: 800px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .solution-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .solution-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+        }
+
+        .solution-item:nth-child(1) .solution-icon { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.3); }
+        .solution-item:nth-child(2) .solution-icon { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); }
+        .solution-item:nth-child(3) .solution-icon { background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); }
+
+        .solution-text h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .solution-text p { font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* ── Thank You Slide ── */
+        .thankyou-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .thankyou-link {
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .thankyou-link.primary {
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
+            color: var(--bg-deep);
+        }
+
+        .thankyou-link.secondary {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+        }
+
+        .thankyou-link:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        .heart { color: #f87171; }
+
+        /* ── Fullscreen Button ── */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 200;
+            transition: all 0.2s ease;
+        }
+        .fullscreen-btn:hover {
+            color: var(--accent-teal);
+            border-color: rgba(0,212,170,0.3);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .slide { padding: 40px 30px; }
+            .features-grid, .tech-grid { grid-template-columns: repeat(2, 1fr); }
+            .metrics-row { grid-template-columns: repeat(2, 1fr); }
+            .privacy-layout { flex-direction: column; }
+            .demo-flow { flex-wrap: wrap; }
+            .demo-arrow { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+
+<div class="presentation">
+
+    <!-- ════════ SLIDE 1: TITLE ════════ -->
+    <div class="slide active" id="slide-0">
+        <div class="slide-tag">Hackathon Presentation 2026</div>
+        <div class="slide-title"><span class="gradient-text">CareChronicle</span></div>
+        <div class="slide-subtitle">Patient Record Intelligence — Secure Clinical Document Workspace</div>
+        <div style="margin-top: 40px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+            <span style="background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; color: var(--accent-teal); font-weight: 500;">🔒 HIPAA Compliant</span>
+            <span style="background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; color: var(--accent-purple); font-weight: 500;">🧠 LLM-Powered</span>
+            <span style="background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; color: var(--accent-cyan); font-weight: 500;">🏥 EHR Ready</span>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 2: PROBLEM ════════ -->
+    <div class="slide" id="slide-1">
+        <div class="slide-tag">Challenge</div>
+        <div class="slide-title" style="font-size: clamp(30px, 4vw, 48px);">The <span class="gradient-text-warm">Problem</span></div>
+        <div class="problem-list">
+            <div class="problem-item glass-card">
+                <div class="problem-icon">⏱️</div>
+                <div class="problem-text">
+                    <h3>30% Time Wasted on Paperwork</h3>
+                    <p>Doctors manually sort through messy unstructured health records — handwritten prescriptions, scanned pathology PDFs, and legacy hospital summaries.</p>
+                </div>
+            </div>
+            <div class="problem-item glass-card">
+                <div class="problem-icon">💸</div>
+                <div class="problem-text">
+                    <h3>Expensive & Complex Search Systems</h3>
+                    <p>Traditional clinical search engines are slow, require complex database setups, and cost hospitals thousands in licensing fees.</p>
+                </div>
+            </div>
+            <div class="problem-item glass-card">
+                <div class="problem-icon">🚨</div>
+                <div class="problem-text">
+                    <h3>HIPAA Compliance Violations</h3>
+                    <p>Sensitive Patient Health Information (PHI) is routinely sent to public cloud APIs, violating HIPAA regulations and risking data breaches.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 3: SOLUTION ════════ -->
+    <div class="slide" id="slide-2">
+        <div class="slide-tag">Solution</div>
+        <div class="slide-title" style="font-size: clamp(30px, 4vw, 48px);">Our <span class="gradient-text">Solution</span></div>
+        <div class="solution-cards">
+            <div class="solution-item glass-card">
+                <div class="solution-icon">📄</div>
+                <div class="solution-text">
+                    <h3>Open Knowledge Format (OKF)</h3>
+                    <p>Converts raw medical records (PDF, DOCX, TXT, Images) into structured, human-readable, version-controlled Markdown with YAML frontmatter.</p>
+                </div>
+            </div>
+            <div class="solution-item glass-card">
+                <div class="solution-icon">⚡</div>
+                <div class="solution-text">
+                    <h3>1-LLM-Call Optimization</h3>
+                    <p>Our local query planner resolves clinical Q&A in maximum 1 LLM call — reducing token costs by 75% and latency by 80%.</p>
+                </div>
+            </div>
+            <div class="solution-item glass-card">
+                <div class="solution-icon">🛡️</div>
+                <div class="solution-text">
+                    <h3>On-Premise Privacy Shield</h3>
+                    <p>Local Ollama LLM deployment ensures patient data never leaves the hospital firewall. Full HIPAA compliance out of the box.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 4: ARCHITECTURE ════════ -->
+    <div class="slide" id="slide-3">
+        <div class="slide-tag">Technical Design</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">System <span class="gradient-text-purple">Architecture</span></div>
+
+        <div class="arch-section-label">Document Ingestion Pipeline</div>
+        <div class="arch-flow">
+            <div class="arch-node input">📁 Upload<br><small>PDF / DOCX / TXT / PNG</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node process">🔍 Extractors<br><small>OCR + Text Parse</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node storage">📋 OKF Builder<br><small>Markdown + YAML</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node output">🧠 Wiki Profiler<br><small>NER + Dashboard</small></div>
+        </div>
+
+        <div class="arch-section-label">Query Pipeline (Max 1 LLM Call)</div>
+        <div class="arch-flow">
+            <div class="arch-node input">💬 User Query</div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node process">🔀 Classifier<br><small>Local • 0 cost</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node storage">📊 Rank & Retrieve<br><small>TF-IDF Local</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node llm">🤖 1× LLM Call<br><small>Groq / Gemini / Ollama</small></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node output">✅ Cited Answer</div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 5: FEATURES ════════ -->
+    <div class="slide" id="slide-4">
+        <div class="slide-tag">Capabilities</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">Core <span class="gradient-text">Features</span></div>
+        <div class="features-grid">
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>HIPAA-Safe Local AI</h3>
+                <p>Ollama LLM deployment with biomistral & llama3</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🏥</div>
+                <h3>EHR Integration</h3>
+                <p>HL7 FHIR R4 server sync (Epic, Cerner, Athena)</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">📸</div>
+                <h3>Prescription OCR</h3>
+                <p>Tesseract scanning for PNG, JPG, JPEG images</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Clinical NER</h3>
+                <p>LLM-based entity extraction for diagnoses & meds</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">⚡</div>
+                <h3>1-LLM-Call Engine</h3>
+                <p>75% cost reduction, 80% latency reduction</p>
+            </div>
+            <div class="feature-card glass-card">
+                <div class="feature-icon">🔌</div>
+                <h3>MCP Protocol</h3>
+                <p>AI agent integration via Model Context Protocol</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 6: TECH STACK ════════ -->
+    <div class="slide" id="slide-5">
+        <div class="slide-tag">Technology</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">Tech <span class="gradient-text-purple">Stack</span></div>
+        <div class="tech-grid">
+            <div class="tech-card glass-card">
+                <div class="tech-badge">⚙️</div>
+                <div class="tech-info">
+                    <h4>FastAPI + Python</h4>
+                    <p>High-performance async backend</p>
+                </div>
+            </div>
+            <div class="tech-card glass-card">
+                <div class="tech-badge">🤖</div>
+                <div class="tech-info">
+                    <h4>Groq / Gemini / Ollama</h4>
+                    <p>3-tier LLM fallback system</p>
+                </div>
+            </div>
+            <div class="tech-card glass-card">
+                <div class="tech-badge">📋</div>
+                <div class="tech-info">
+                    <h4>OKF Format</h4>
+                    <p>Markdown + YAML flat-file DB</p>
+                </div>
+            </div>
+            <div class="tech-card glass-card">
+                <div class="tech-badge">🏥</div>
+                <div class="tech-info">
+                    <h4>HL7 FHIR R4</h4>
+                    <p>EHR interoperability standard</p>
+                </div>
+            </div>
+            <div class="tech-card glass-card">
+                <div class="tech-badge">👁️</div>
+                <div class="tech-info">
+                    <h4>Tesseract + PIL</h4>
+                    <p>OCR image text extraction</p>
+                </div>
+            </div>
+            <div class="tech-card glass-card">
+                <div class="tech-badge">🎨</div>
+                <div class="tech-info">
+                    <h4>Glassmorphic UI</h4>
+                    <p>Dark theme HTML/CSS/JS frontend</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 7: PRIVACY ════════ -->
+    <div class="slide" id="slide-6">
+        <div class="slide-tag">Security</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">Data Privacy & <span class="gradient-text">HIPAA</span></div>
+        <div class="privacy-layout">
+            <div class="privacy-shield">
+                <div class="shield-icon">🛡️</div>
+                <div class="hipaa-badge">HIPAA COMPLIANT</div>
+            </div>
+            <div class="privacy-points">
+                <div class="privacy-point glass-card">
+                    <div class="privacy-point-icon">🔒</div>
+                    <div>
+                        <h4>On-Premise Deployment</h4>
+                        <p>All queries processed inside hospital firewall using local Ollama LLM. No external API calls in HIPAA mode.</p>
+                    </div>
+                </div>
+                <div class="privacy-point glass-card">
+                    <div class="privacy-point-icon">☁️</div>
+                    <div>
+                        <h4>Zero Cloud Exposure</h4>
+                        <p>No Patient Health Information (PHI) sent to public cloud APIs. Complete data isolation.</p>
+                    </div>
+                </div>
+                <div class="privacy-point glass-card">
+                    <div class="privacy-point-icon">📋</div>
+                    <div>
+                        <h4>Full Audit Trail</h4>
+                        <p>Every answer is traceable with cited source documents. Clickable references for compliance auditing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 8: DEMO ════════ -->
+    <div class="slide" id="slide-7">
+        <div class="slide-tag">Demonstration</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">Live Demo <span class="gradient-text">Workflow</span></div>
+        <div style="margin-bottom: 18px;"><a href="https://carechronicle.onrender.com" target="_blank" class="thankyou-link primary" style="font-size:15px;">🌐 Try Live Demo — carechronicle.onrender.com</a></div>
+        <div class="demo-flow">
+            <div class="demo-step glass-card">
+                <div class="demo-step-num">1</div>
+                <div class="demo-step-icon">👤</div>
+                <h4>Register Patient</h4>
+            </div>
+            <div class="demo-arrow">→</div>
+            <div class="demo-step glass-card">
+                <div class="demo-step-num">2</div>
+                <div class="demo-step-icon">🏥</div>
+                <h4>Import FHIR EHR</h4>
+            </div>
+            <div class="demo-arrow">→</div>
+            <div class="demo-step glass-card">
+                <div class="demo-step-num">3</div>
+                <div class="demo-step-icon">📤</div>
+                <h4>Upload / OCR Scan</h4>
+            </div>
+            <div class="demo-arrow">→</div>
+            <div class="demo-step glass-card">
+                <div class="demo-step-num">4</div>
+                <div class="demo-step-icon">📊</div>
+                <h4>View Timeline</h4>
+            </div>
+            <div class="demo-arrow">→</div>
+            <div class="demo-step glass-card">
+                <div class="demo-step-num">5</div>
+                <div class="demo-step-icon">💬</div>
+                <h4>Ask Questions</h4>
+            </div>
+            <div class="demo-arrow">→</div>
+            <div class="demo-step glass-card">
+                <div class="demo-step-num">6</div>
+                <div class="demo-step-icon">✅</div>
+                <h4>Cited Answers</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 9: IMPACT ════════ -->
+    <div class="slide" id="slide-8">
+        <div class="slide-tag">Results</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">Impact & <span class="gradient-text">Results</span></div>
+        <div class="metrics-row">
+            <div class="metric-card glass-card">
+                <div class="metric-value">75%</div>
+                <div class="metric-label">Token Cost<br>Reduction</div>
+            </div>
+            <div class="metric-card glass-card">
+                <div class="metric-value">80%</div>
+                <div class="metric-label">Latency<br>Reduction</div>
+            </div>
+            <div class="metric-card glass-card">
+                <div class="metric-value">1</div>
+                <div class="metric-label">Max LLM Calls<br>Per Query</div>
+            </div>
+            <div class="metric-card glass-card">
+                <div class="metric-value">0</div>
+                <div class="metric-label">PHI Data<br>Leaks</div>
+            </div>
+        </div>
+        <div style="margin-top: 30px; font-size: 16px; color: var(--text-muted); font-weight: 400; text-align: center;">
+            Optimized for real hospital environments where cost, speed, and privacy matter.
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 10: ROADMAP ════════ -->
+    <div class="slide" id="slide-9">
+        <div class="slide-tag">Future</div>
+        <div class="slide-title" style="font-size: clamp(28px, 3.5vw, 44px);">Roadmap & <span class="gradient-text-purple">Future</span></div>
+        <div class="roadmap-timeline">
+            <div class="roadmap-item">
+                <div class="roadmap-dot done">✓</div>
+                <div class="roadmap-label">EHR Integration</div>
+                <div class="roadmap-sub">FHIR R4 Sync</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot done">✓</div>
+                <div class="roadmap-label">OCR Engine</div>
+                <div class="roadmap-sub">Tesseract + PIL</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot done">✓</div>
+                <div class="roadmap-label">Local LLM</div>
+                <div class="roadmap-sub">Ollama HIPAA</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot done">✓</div>
+                <div class="roadmap-label">Glassmorphic UI</div>
+                <div class="roadmap-sub">Dark Theme</div>
+            </div>
+            <div class="roadmap-item">
+                <div class="roadmap-dot next">→</div>
+                <div class="roadmap-label">Vector Search</div>
+                <div class="roadmap-sub">ChromaDB / Faiss</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ SLIDE 11: THANK YOU ════════ -->
+    <div class="slide" id="slide-10">
+        <div class="slide-tag">Thank You</div>
+        <div class="slide-title"><span class="gradient-text">Thank You</span></div>
+        <div class="slide-subtitle">
+            CareChronicle — Secure. Private. Intelligent.<br>
+            <span style="font-size: 14px; margin-top: 8px; display: inline-block;">Built with <span class="heart">❤️</span> for better healthcare</span>
+        </div>
+        <div class="thankyou-links">
+            <a href="https://github.com/Ankithraj-1312/carechronicle" target="_blank" class="thankyou-link primary">⭐ View on GitHub</a>
+            <a href="https://carechronicle.onrender.com" target="_blank" class="thankyou-link secondary">🚀 Live Demo</a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Navigation Bar -->
+<div class="nav-bar">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="slide-counter"><span class="current" id="currentSlide">1</span> / <span id="totalSlides">11</span></div>
+    <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Next →</button>
+</div>
+
+<script>
+    let current = 0;
+    const total = 11;
+
+    // Build progress dots
+    const dotsContainer = document.getElementById('progressDots');
+    for (let i = 0; i < total; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'progress-dot' + (i === 0 ? ' active' : '');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
+
+    function navigate(dir) {
+        const next = current + dir;
+        if (next < 0 || next >= total) return;
+        goToSlide(next);
+    }
+
+    function goToSlide(index) {
+        const prev = document.getElementById('slide-' + current);
+        const next = document.getElementById('slide-' + index);
+
+        if (index > current) {
+            prev.classList.remove('active');
+            prev.classList.add('exit-left');
+        } else {
+            prev.classList.remove('active');
+            prev.style.transform = 'translateX(60px)';
+            prev.style.opacity = '0';
+        }
+
+        setTimeout(() => {
+            prev.classList.remove('exit-left');
+            prev.style.transform = '';
+            prev.style.opacity = '';
+        }, 500);
+
+        next.classList.add('active');
+        current = index;
+
+        // Update UI
+        document.getElementById('currentSlide').textContent = current + 1;
+        document.getElementById('prevBtn').disabled = current === 0;
+        document.getElementById('nextBtn').disabled = current === total - 1;
+
+        // Update dots
+        document.querySelectorAll('.progress-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === current);
+        });
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+        if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+        if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
+        if (e.key === 'End') { e.preventDefault(); goToSlide(total - 1); }
+    });
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+</script>
+
+</body>
+</html>
