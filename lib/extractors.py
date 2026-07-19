@@ -1,6 +1,28 @@
 import io
+import os
 import docx
 from pypdf import PdfReader
+
+def ocr_via_gemini(buffer: bytes, ext: str) -> str:
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key:
+        raise ValueError("GEMINI_API_KEY is not set in environment variables.")
+    
+    import google.generativeai as genai
+    genai.configure(api_key=gemini_key)
+    
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    mime_type = f"image/{ext}" if ext != 'jpg' else 'image/jpeg'
+    
+    contents = [
+        {
+            'mime_type': mime_type,
+            'data': buffer
+        },
+        "Extract all readable text from this clinical document/prescription image exactly as written. Do not add any introductory text, headers, explanation, or markdown formatting. Just return the raw text."
+    ]
+    response = model.generate_content(contents)
+    return response.text or ""
 
 def extract_text(buffer: bytes, filename: str) -> str:
     ext = filename.lower().split('.')[-1]
@@ -36,10 +58,16 @@ def extract_text(buffer: bytes, filename: str) -> str:
             img = Image.open(io.BytesIO(buffer))
             return pytesseract.image_to_string(img) or ""
         except Exception as e:
-            raise ValueError(f"OCR failed for image .{ext}: {str(e)}")
+            try:
+                print(f"[INFO] Tesseract failed or not installed. Attempting Gemini multimodal fallback...")
+                return ocr_via_gemini(buffer, ext)
+            except Exception as gemini_err:
+                print(f"[WARN] Gemini OCR fallback failed: {str(gemini_err)}")
+                raise ValueError(f"OCR failed for image .{ext}: {str(e)}. (Gemini fallback also failed: {str(gemini_err)})")
     elif ext in ['txt', 'md', 'markdown']:
         return buffer.decode('utf-8', errors='ignore')
     else:
         raise ValueError(f"Unsupported file type: .{ext}")
+
 
 
