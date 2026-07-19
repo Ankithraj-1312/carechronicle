@@ -130,7 +130,7 @@ def extract_text(buffer: bytes, filename: str) -> str:
         except Exception as tess_err:
             print(f"[INFO] Tesseract unavailable or returned empty: {tess_err}")
 
-        # 2. Try Ollama (local LLM — no data leaves the machine)
+        ollama_error_str = "Not run"
         try:
             print("[INFO] Attempting Ollama local vision OCR...")
             result = ocr_via_ollama(buffer, ext)
@@ -139,7 +139,8 @@ def extract_text(buffer: bytes, filename: str) -> str:
                 return result
             raise ValueError("Ollama returned empty text.")
         except Exception as ollama_err:
-            print(f"[WARN] Ollama OCR failed: {ollama_err}")
+            ollama_error_str = str(ollama_err)
+            print(f"[WARN] Ollama OCR failed: {ollama_error_str}")
 
         # 3. Fall back to Groq (cloud)
         try:
@@ -153,7 +154,7 @@ def extract_text(buffer: bytes, filename: str) -> str:
             raise ValueError(
                 f"All OCR backends failed for image .{ext}. "
                 f"Tesseract: not installed or empty. "
-                f"Ollama: {ollama_err}. "
+                f"Ollama: {ollama_error_str}. "
                 f"Groq: {groq_err}."
             )
 
