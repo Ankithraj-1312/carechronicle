@@ -50,6 +50,32 @@ def ocr_via_ollama(buffer: bytes, ext: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# OCR backend: Gemini (cloud fallback — uses existing GEMINI_API_KEY)
+# ---------------------------------------------------------------------------
+def ocr_via_gemini(buffer: bytes, ext: str) -> str:
+    """Use Google Gemini vision model for OCR.
+    Requires GEMINI_API_KEY to be set in environment variables.
+    Uses gemini-3.5-flash by default; override with GEMINI_VISION_MODEL.
+    """
+    import google.generativeai as genai
+
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    if not gemini_key:
+        raise ValueError("GEMINI_API_KEY is not set in environment variables.")
+
+    genai.configure(api_key=gemini_key)
+
+    model_name = os.environ.get("GEMINI_VISION_MODEL", "gemini-3.5-flash")
+    model = genai.GenerativeModel(model_name)
+
+    mime_type = f"image/{ext}" if ext != "jpg" else "image/jpeg"
+    image_part = {"mime_type": mime_type, "data": buffer}
+
+    response = model.generate_content([OCR_PROMPT, image_part])
+    return response.text or ""
+
+
+# ---------------------------------------------------------------------------
 # OCR backend: Groq (cloud fallback)
 # ---------------------------------------------------------------------------
 
@@ -179,7 +205,20 @@ def extract_text(buffer: bytes, filename: str) -> str:
             ollama_error_str = str(ollama_err)
             print(f"[WARN] Ollama OCR failed: {ollama_error_str}")
 
-        # 3. Fall back to Groq (cloud)
+        # 3. Fall back to Gemini (cloud — uses existing GEMINI_API_KEY)
+        gemini_error_str = "Not run"
+        try:
+            print("[INFO] Attempting Gemini cloud vision OCR...")
+            result = ocr_via_gemini(buffer, ext)
+            if result.strip():
+                print("[INFO] Gemini OCR succeeded.")
+                return result
+            raise ValueError("Gemini returned empty text.")
+        except Exception as gemini_err:
+            gemini_error_str = str(gemini_err)
+            print(f"[WARN] Gemini OCR failed: {gemini_error_str}")
+
+        # 4. Fall back to Groq (cloud)
         try:
             print("[INFO] Attempting Groq cloud vision OCR...")
             result = ocr_via_groq(buffer, ext)
@@ -192,6 +231,7 @@ def extract_text(buffer: bytes, filename: str) -> str:
                 f"All OCR backends failed for image .{ext}. "
                 f"Tesseract: not installed or empty. "
                 f"Ollama: {ollama_error_str}. "
+                f"Gemini: {gemini_error_str}. "
                 f"Groq: {groq_err}."
             )
 
