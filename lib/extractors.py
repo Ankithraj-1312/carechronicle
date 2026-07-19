@@ -52,8 +52,19 @@ def ocr_via_ollama(buffer: bytes, ext: str) -> str:
 # ---------------------------------------------------------------------------
 # OCR backend: Groq (cloud fallback)
 # ---------------------------------------------------------------------------
+
+# Vision-capable models on Groq, in priority order.
+# Override with env var GROQ_VISION_MODEL if needed.
+_GROQ_VISION_MODELS = [
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    "meta-llama/llama-4-maverick-17b-128e-instruct",
+    "llava-v1.5-7b-4096-preview",
+]
+
 def ocr_via_groq(buffer: bytes, ext: str) -> str:
-    """Use Groq's hosted vision model as a cloud fallback for OCR."""
+    """Use Groq's hosted vision model as a cloud fallback for OCR.
+    Tries each model in _GROQ_VISION_MODELS until one succeeds.
+    """
     groq_key = os.environ.get("Groq_API_KEY", "")
     if not groq_key:
         raise ValueError("Groq_API_KEY is not set in environment variables.")
@@ -64,25 +75,51 @@ def ocr_via_groq(buffer: bytes, ext: str) -> str:
     mime_type = f"image/{ext}" if ext != "jpg" else "image/jpeg"
     b64_image = base64.b64encode(buffer).decode("utf-8")
 
-    response = client.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        messages=[
-            {
-                "role": "user",
-                "content": [
+    # Allow override via env var
+    env_model = os.environ.get("GROQ_VISION_MODEL", "")
+    models_to_try = [env_model] + _GROQ_VISION_MODELS if env_model else _GROQ_VISION_MODELS
+
+    # Get list of available model IDs to skip unavailable ones fast
+    try:
+        available_ids = {m.id for m in client.models.list().data}
+    except Exception:
+        available_ids = set()  # If listing fails, try all anyway
+
+    last_err = None
+    for model_id in models_to_try:
+        # Skip if we know it's not on this account
+        if available_ids and model_id not in available_ids:
+            continue
+        try:
+            response = client.chat.completions.create(
+                model=model_id,
+                messages=[
                     {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{mime_type};base64,{b64_image}"}
-                    },
-                    {
-                        "type": "text",
-                        "text": OCR_PROMPT
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime_type};base64,{b64_image}"}
+                            },
+                            {
+                                "type": "text",
+                                "text": OCR_PROMPT
+                            }
+                        ]
                     }
                 ]
-            }
-        ]
+            )
+            return response.choices[0].message.content or ""
+        except Exception as e:
+            last_err = e
+            print(f"[WARN] Groq model {model_id} failed: {e}")
+            continue
+
+    raise ValueError(
+        f"No Groq vision model is available on this API key. "
+        f"Tried: {models_to_try}. Last error: {last_err}. "
+        f"Set GROQ_VISION_MODEL in .env to a vision-capable model."
     )
-    return response.choices[0].message.content or ""
 
 
 # ---------------------------------------------------------------------------
