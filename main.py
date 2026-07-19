@@ -331,6 +331,10 @@ def read_root():
 def get_requirements():
     return FileResponse("requirements.txt")
 
+@app.get("/presentation.html")
+def get_presentation():
+    return FileResponse("public/presentation.html")
+
 app.mount("/", StaticFiles(directory="public"), name="public")
 
 if __name__ == "__main__":
