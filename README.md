@@ -44,9 +44,11 @@ To protect Patient Health Information (PHI) under strict compliance guidelines (
 * **How it works**: By configuring `OLLAMA_HOST` in `.env`, the Q&A engine, general question classifier, and clinical entity extractor route all requests to your local secure Ollama instance.
 * **Recommended Models**: Use `biomistral` (clinical fine-tune) or `llama3` / `llama3.1` (general).
 
-### 2. 📄 Scanned OCR: Tesseract Fallback
-Real hospital prescriptions are often handwritten, printed scans, or image files.
-* **How it works**: Direct image uploads (`.png`, `.jpg`, `.jpeg`) and scanned text-free PDFs are automatically passed through Tesseract OCR using PIL and `pytesseract` to extract medical text before converting it to OKF.
+### 2. 📄 Scanned OCR: 3-Tier Intelligent OCR Fallback
+Real hospital prescriptions are often handwritten, printed scans, or image files. CareChronicle handles this gracefully via an automated 3-tier fallback pipeline:
+1. **Local Tesseract OCR**: First tries running fast, local Tesseract OCR to process files without any external network request.
+2. **Local Ollama Vision LLM** (HIPAA-safe): If Tesseract is not installed or returns empty text, it calls your local running Ollama instance using a vision model (e.g. `llava-phi3` or `moondream`).
+3. **Groq Vision Cloud Fallback**: If local LLM/Ollama fallback is offline, it securely routes to Groq's high-speed cloud vision engine using the `meta-llama/llama-4-scout-17b-16e-instruct` model.
 
 ### 3. 🧠 Clinical NER: LLM-Based Entity Extraction
 Replaces brittle keyword regular expression searches with an advanced LLM Clinical Named Entity Recognition (NER) prompt.
@@ -108,9 +110,9 @@ Standard clinical Retrieval-Augmented Generation (RAG) platforms make multiple L
 
 ### 1. Prerequisites
 - Python 3.10 or higher installed.
-- Active Groq API Key (Primary) and/or Google Gemini API Key (Fallback).
-- [Ollama](https://ollama.com/) running locally for HIPAA mode.
-- (Optional) [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed on your system PATH for image ingestion.
+- Active Groq API Key (Primary & OCR Fallback).
+- [Ollama](https://ollama.com/) running locally for HIPAA mode and local OCR.
+- (Optional) [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed on your system PATH for local OCR ingestion.
 
 ### 2. Install Project Dependencies
 Clone the repository, create a virtual environment, and install requirements:
@@ -136,11 +138,10 @@ Create a file named `.env` in the root directory:
 ```env
 PORT=3005
 Groq_API_KEY=your_groq_api_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
 
-# Local HIPAA Anonymized Configuration (Optional)
+# Local HIPAA / Offline Configuration (Optional)
 # OLLAMA_HOST=http://localhost:11434
-# OLLAMA_MODEL=biomistral
+# OLLAMA_MODEL=llava-phi3 # or moondream, biomistral, etc.
 ```
 
 ### 4. Running the Platform
